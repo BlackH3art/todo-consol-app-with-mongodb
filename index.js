@@ -54,17 +54,72 @@ function showAllTodos(todosCollection) {
 // **************** mark as done
 
 function markAsDone(todosCollection, id) {
-  todosCollection.updateOne({_id: mongo.ObjectID(id)}, {$set: {done: true}}, err => {
+
+  todosCollection.find({
+    _id: mongo.ObjectID(id)
+  }).toArray((err, todos) => {
     if(err) {
-      console.log('Błąd przy aktualizacji zadania!', err);
+      console.log('Błąd podczas pobierania');
+    } else if(todos.length !== 1) { 
+      console.log('Nie znaleziono zadania o takim ID');
+      client.close();
+    } else if(todos[0].done) {
+      console.log('To zadanie, zostało zrobione wcześniej');
+      client.close();
     } else {
-      console.log('Zadanie zaktualizowano');
+      todosCollection.updateOne({
+        _id: mongo.ObjectID(id)
+      }, { 
+        $set: {done: true}
+      }, err => {
+    
+        console.log(id);
+        if(err) {
+          console.log('Błąd przy aktualizacji zadania!', err);
+        } else {
+          console.log('Zadanie zaktualizowano');
+          client.close()
+        }
+      } )
+    
     }
-  } )
-
-
-  client.close()
+  })
 }
+
+  
+// **************************************************************
+// **************** delete todod item
+
+
+function deleteTodoItem(todosCollection, id) { 
+  todosCollection.find({
+    _id: mongo.ObjectID(id)
+  }).toArray((err, todo) => {
+    if(err) {
+      console.log('Błąd przy usuwaniu');
+    } else if(todo.length !== 1) {
+      console.log('Nie da się usunąć nieistniejącego elementu');
+      client.close();
+    } else {
+      todosCollection.deleteOne({
+        _id: mongo.ObjectID(id)
+      }, err => {
+        if(err) {
+          console.log('Błąd przy usuwaniu');
+        } else {
+          console.log(`Zadanie o id: ${id} zostało usunięte`);
+          client.close();
+        }
+      })
+    }
+  })
+}
+
+
+  
+
+  
+
       
 
 function doTheTodo(todosCollection) {
@@ -78,7 +133,10 @@ function doTheTodo(todosCollection) {
       showAllTodos(todosCollection);
       break
     case 'done': 
-      markAsDone(todosCollection);
+      markAsDone(todosCollection, args[0]);
+      break
+    case 'delete': 
+      deleteTodoItem(todosCollection, args[0]);
       break
   }
 
