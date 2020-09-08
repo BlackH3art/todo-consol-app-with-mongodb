@@ -116,8 +116,22 @@ function deleteTodoItem(todosCollection, id) {
 }
 
 
+// **************************************************************
+// **************** delete all finished tasks
   
+function deleteAllDoneTasks(todosCollection) {
 
+  todosCollection.deleteMany({
+    done: true
+  }, (err) => {
+    if(err) {
+      console.log('Błąd przy wyszukiwaniu ukońcoznych zadań');
+    } else {
+      console.log('Wyczysczono listę ukończonych zadań');
+      client.close();
+    }
+  })
+}
   
 
       
@@ -138,6 +152,18 @@ function doTheTodo(todosCollection) {
     case 'delete': 
       deleteTodoItem(todosCollection, args[0]);
       break
+    case 'cleanup': 
+      deleteAllDoneTasks(todosCollection);
+      break
+    default:
+      console.log(`Błędna komenda 
+      Dostępne komendy:
+      - add
+      - list
+      - done
+      - delete
+      - cleanup
+      `);
   }
 
   // client.close();
